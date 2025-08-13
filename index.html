@@ -3,54 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>線上客服授權頁</title>
+    <title>線上客服</title>
     <style>
         body {
-            background-color: #222;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             font-family: Arial, sans-serif;
             text-align: center;
+            background: rgba(244, 244, 244, 0.2);
+            margin: 40px;
         }
         h1 {
-            font-size: 28px;
-            margin-bottom: 20px;
-        }
-        .start-btn {
-            background-color: #34C759;
+            font-size: 60px;
             color: white;
-            border: none;
-            padding: 20px 50px;
-            font-size: 28px;
+        }
+        .button {
+            display: inline-block;
+            padding: 15px 30px;
+            font-size: 24px;
             font-weight: bold;
+            color: white;
+            background: #34C759;
+            border: none;
             border-radius: 50px;
             cursor: pointer;
+            margin: 10px;
             transition: background 0.3s ease;
         }
-        .start-btn:hover {
-            background-color: #28A745;
+        .button:hover {
+            background: #28A745;
+        }
+        .button.red {
+            background: #dc3545;
+        }
+        .button.red:hover {
+            background: #b02a37;
+        }
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 36px;
+            font-weight: bold;
+            color: #ffffff;
         }
     </style>
 </head>
 <body>
-    <h1>請先授權攝影機與麥克風</h1>
-    <button class="start-btn" onclick="startCall()">確定通話 Start</button>
+
+    <h1>線上客服</h1>
+    <button class="button" id="startCall" onclick="startAutoRejoin()">開始通話</button>
+    <button class="button red" id="endCall" onclick="stopAutoRejoin()" disabled>結束通話</button>
+
+    <p id="status">尚未開始通話</p>
+
+    <!-- 鈴聲音效 -->
+    <audio id="ringTone" preload="auto">
+        <source src="ring.mp3" type="audio/mpeg">
+    </audio>
 
     <script>
-        async function startCall() {
-            try {
-                // 使用者觸發後請求授權
-                await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                // 直接同頁導向 Jitsi 會議室
-                window.location.href = 'https://meet.jit.si/TCHBSSupportRoomLive#userInfo.displayName="注意"&config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false';
-            } catch (err) {
-                alert('❌ 需要允許攝影機與麥克風才能進入會議');
+        let meetingWindow;
+        let autoRejoinInterval;
+        let statusInterval;
+        let isFirstCall = true;
+        let isRejoining = false;
+
+        function playRingTone() {
+            const ring = document.getElementById("ringTone");
+            ring.currentTime = 0;
+            ring.play().catch(err => {
+                console.log("播放鈴聲失敗:", err);
+            });
+        }
+
+        function openJitsiMeeting() {
+            playRingTone();
+
+            let winWidth = screen.width / 2 - 10;
+            let winHeight = screen.height / 2 - 98;
+            let posX = 0;
+            let posY = screen.height - winHeight;
+
+            meetingWindow = window.open(
+                'https://meet.jit.si/TCHBSSupportRoomLive#userInfo.displayName="注意"&config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false',
+                "_blank",
+                `width=${winWidth},height=${winHeight},left=${posX},top=${posY},toolbar=no,menubar=no,location=no,status=no,scrollbars=no,resizable=no`
+            );
+
+            if (!meetingWindow) {
+                alert("請允許瀏覽器開啟彈出式視窗，以進行視訊客服");
+                stopAutoRejoin();
+                return;
+            }
+
+            document.getElementById("startCall").disabled = true;
+            document.getElementById("endCall").disabled = false;
+            isRejoining = false;
+
+            let statusMessages = ["撥號中.", "撥號中..", "撥號中...", "撥號中.", "撥號中..", "已接通"];
+            let count = 0;
+
+            statusInterval = setInterval(() => {
+                document.getElementById("status").innerText = statusMessages[count];
+                count++;
+                if (count >= statusMessages.length) {
+                    clearInterval(statusInterval);
+                }
+            }, 1000);
+        }
+
+        function startAutoRejoin() {
+            openJitsiMeeting();
+            autoRejoinInterval = setInterval(() => {
+                document.getElementById('endCall').click();
+                setTimeout(() => {
+                    isRejoining = true;
+                    document.getElementById('startCall').click();
+                }, 1000);
+            }, 600000);
+        }
+
+        function stopAutoRejoin() {
+            clearInterval(autoRejoinInterval);
+            if (statusInterval) clearInterval(statusInterval);
+            document.getElementById("status").innerText = "尚未通話";
+
+            if (meetingWindow && !meetingWindow.closed) {
+                meetingWindow.close();
+            }
+
+            document.getElementById("startCall").disabled = false;
+            document.getElementById("endCall").disabled = true;
+
+            if (!isRejoining) {
+                setTimeout(() => {
+                    document.getElementById("status").innerText = "尚未通話";
+                }, 10000);
             }
         }
     </script>
+
 </body>
 </html>
