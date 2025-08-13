@@ -2,72 +2,58 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>線上客服會議</title>
+    <title>線上客服</title>
     <style>
         body {
             background-color: #222;
             color: white;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             height: 100vh;
-        }
-        #authSection {
+            font-family: Arial, sans-serif;
             text-align: center;
         }
-        button {
-            background: #34C759;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 20px;
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        #countdown {
+            font-size: 60px;
             font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #28A745;
-        }
-        iframe {
-            width: 100%;
-            height: 100vh;
-            border: none;
+            color: #34C759;
         }
     </style>
 </head>
 <body>
-    <div id="authSection">
-        <h1>請允許使用攝影機與麥克風</h1>
-        <p>授權完成後將自動進入會議</p>
-        <button onclick="requestPermission()">授權並進入會議</button>
-    </div>
-
-    <div id="meetingSection" style="display:none;">
-        <iframe id="jitsiFrame"
-            src=""
-            allow="camera; microphone; fullscreen; display-capture"
-            allowfullscreen>
-        </iframe>
-    </div>
+    <h1>請允許使用攝影機與麥克風</h1>
+    <p>授權完成後將自動進入會議</p>
+    <div id="countdown">等待授權...</div>
 
     <script>
         async function requestPermission() {
             try {
+                // 要求授權攝影機與麥克風
                 await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                // 切換顯示會議區塊
-                document.getElementById('authSection').style.display = 'none';
-                document.getElementById('meetingSection').style.display = 'block';
-                // 設定 Jitsi iframe 連結
-                document.getElementById('jitsiFrame').src =
-                    'https://meet.jit.si/TCHBSSupportRoomLive#userInfo.displayName=%22注意%22&config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false';
+                
+                // 倒數 3 秒進入會議
+                let seconds = 3;
+                document.getElementById('countdown').innerText = seconds;
+                let timer = setInterval(() => {
+                    seconds--;
+                    document.getElementById('countdown').innerText = seconds;
+                    if (seconds <= 0) {
+                        clearInterval(timer);
+                        window.location.href = 'https://meet.jit.si/tchbssupportroomlive#userInfo.displayName="注意"&config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false';
+                    }
+                }, 1000);
             } catch (err) {
+                document.getElementById('countdown').innerText = '授權失敗';
                 alert('需要允許攝影機與麥克風才能進入會議');
             }
         }
+        requestPermission();
     </script>
 </body>
 </html>
