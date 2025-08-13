@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>線上客服</title>
+    <title>授權攝影機與麥克風</title>
     <style>
         body {
             background-color: #222;
@@ -19,25 +19,40 @@
             font-size: 28px;
             margin-bottom: 20px;
         }
+        button {
+            padding: 20px 50px;
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            background-color: #34C759;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #28A745;
+        }
         #countdown {
-            font-size: 60px;
+            font-size: 50px;
             font-weight: bold;
             color: #34C759;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
     <h1>請允許使用攝影機與麥克風</h1>
-    <p>授權完成後將自動進入會議</p>
-    <div id="countdown">等待授權...</div>
+    <p>點選下方按鈕開始授權並進入會議</p>
+    <button onclick="startCall()">📞 確定通話 Start</button>
+    <div id="countdown"></div>
 
     <script>
-        async function requestPermission() {
+        async function startCall() {
             try {
-                // 要求授權攝影機與麥克風
+                // 要求授權
                 await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                
-                // 倒數 3 秒進入會議
+
+                // 倒數
                 let seconds = 3;
                 document.getElementById('countdown').innerText = seconds;
                 let timer = setInterval(() => {
@@ -45,15 +60,14 @@
                     document.getElementById('countdown').innerText = seconds;
                     if (seconds <= 0) {
                         clearInterval(timer);
-                        window.location.href = 'https://meet.jit.si/tchbssupportroomlive#userInfo.displayName="注意"&config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false';
+                        // 進入會議室
+                        window.location.href = 'https://meet.jit.si/TCHBSSupportRoomLive#userInfo.displayName="注意"&config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false';
                     }
                 }, 1000);
             } catch (err) {
-                document.getElementById('countdown').innerText = '授權失敗';
                 alert('需要允許攝影機與麥克風才能進入會議');
             }
         }
-        requestPermission();
     </script>
 </body>
 </html>
