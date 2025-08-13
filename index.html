@@ -1,8 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>線上客服授權</title>
+    <title>線上客服授權頁</title>
     <style>
         body {
             background-color: #222;
@@ -16,40 +17,57 @@
             text-align: center;
         }
         h1 {
-            font-size: 28px;
+            font-size: 32px;
             margin-bottom: 20px;
         }
-        button {
-            font-size: 32px;
-            padding: 20px 40px;
+        #startBtn {
             background-color: #34C759;
             border: none;
-            border-radius: 10px;
             color: white;
-            cursor: pointer;
+            padding: 30px 80px;
+            font-size: 28px;
             font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
             transition: background 0.3s ease;
         }
-        button:hover {
+        #startBtn:hover {
             background-color: #28A745;
+        }
+        #status {
+            margin-top: 30px;
+            font-size: 24px;
+            color: #ccc;
         }
     </style>
 </head>
 <body>
-    <h1>請點擊下方按鈕授權攝影機與麥克風</h1>
-    <button id="startBtn">📞 確定通話 Start</button>
+    <h1>請允許使用攝影機與麥克風</h1>
+    <p>授權完成後會自動開啟會議視窗</p>
+    <button id="startBtn" onclick="requestPermission()">確定通話 Start</button>
+    <div id="status"></div>
 
     <script>
-        document.getElementById('startBtn').addEventListener('click', async () => {
+        async function requestPermission() {
+            document.getElementById('status').innerText = '正在請求授權...';
             try {
-                // 先要求授權
+                // 要求攝影機與麥克風授權
                 await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                // 成功授權後進入 Jitsi 會議
-                window.location.href = 'https://meet.jit.si/TCHBSSupportRoomLive#userInfo.displayName="注意"&config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false';
+                document.getElementById('status').innerText = '授權成功，正在開啟會議...';
+                
+                // 開新視窗載入 Jitsi 會議
+                window.open(
+                    'https://meet.jit.si/TCHBSSupportRoomLive#userInfo.displayName="注意"&config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false',
+                    '_blank',
+                    'width=800,height=600'
+                );
+                
+                // 更新原頁面狀態
+                document.getElementById('status').innerText = '已開始通話';
             } catch (err) {
-                alert('需要允許攝影機與麥克風才能進入會議');
+                document.getElementById('status').innerText = '授權失敗，請允許使用攝影機與麥克風';
             }
-        });
+        }
     </script>
 </body>
 </html>
